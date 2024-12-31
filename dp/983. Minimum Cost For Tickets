@@ -18,4 +18,6 @@ public:
 
         return f(days.back(), days[0], costs);
     }
+
+    
 };
