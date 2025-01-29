@@ -1,0 +1,52 @@
+class Solution:
+    def findRedundantConnection(self, edges: List[List[int]]) -> List[int]:
+        n = len(edges)
+        adj = [[] for _ in range(n + 1)]  # 1-based indexing for nodes
+
+        # Build adjacency list with edge indices
+        for idx, (a, b) in enumerate(edges):
+            adj[a].append((b, idx))
+            adj[b].append((a, idx))
+
+        visited = [False] * (n + 1)
+        parent = [(-1, -1) for _ in range(n + 1)]  # (parent_node, edge_index)
+        cycle_edges = []
+
+        def dfs(u):
+            visited[u] = True
+            for v, edge_idx in adj[u]:
+                if not visited[v]:
+                    parent[v] = (u, edge_idx)
+                    if dfs(v):
+                        return True
+                else:
+                    # Check if the visited node is not the parent (indicating a cycle)
+                    if parent[u][0] != v:
+                        # Collect the edges involved in the cycle
+                        current = u
+                        edges_in_cycle = [edge_idx]
+                        # Backtrack from current to the ancestor v using parent pointers
+                        while current != v:
+                            current_parent, current_edge = parent[current]
+                            edges_in_cycle.append(current_edge)
+                            current = current_parent
+                        nonlocal cycle_edges
+                        cycle_edges = edges_in_cycle
+                        return True
+            return False
+
+        # Start DFS from each node to handle disconnected components (though the graph is connected)
+        for u in range(1, n + 1):
+            if not visited[u]:
+                if dfs(u):
+                    break
+
+        # Find the edge with the maximum index in the cycle edges
+        max_idx = -1
+        result_edge = []
+        for edge_idx in cycle_edges:
+            if edge_idx > max_idx:
+                max_idx = edge_idx
+                result_edge = edges[edge_idx]
+
+        return result_edge
